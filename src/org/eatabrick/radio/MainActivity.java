@@ -1,42 +1,38 @@
 package org.eatabrick.radio;
 
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.widget.ImageView;
-import android.widget.SeekBar;
-import android.widget.TextView;
-import com.actionbarsherlock.app.ActionBar.Tab;
 import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 
-public class MainActivity extends SherlockActivity implements ActionBar.TabListener {
-  private static final String TAG = "NowPlayingActivity";
+public class MainActivity extends SherlockFragmentActivity {
+  private static final String TAG = "MainActivity";
+
 
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
-    setContentView(R.layout.playing);
-
-    ((SeekBar) findViewById(R.id.seek)).setEnabled(false);
 
     getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
     ActionBar.Tab tab;
 
-    tab = getSupportActionBar().newTab().setTabListener(this).setText(getString(R.string.tab_now_playing));
+    tab = getSupportActionBar().newTab();
+    tab.setText(getString(R.string.tab_now_playing));
+    tab.setTabListener(new TabListener<NowPlayingFragment> (this, "playing", NowPlayingFragment.class));
     getSupportActionBar().addTab(tab);
+
+    tab = getSupportActionBar().newTab();
+    tab.setText(getString(R.string.tab_play_queue));
+    tab.setTabListener(new TabListener<QueueFragment> (this, "queue", QueueFragment.class));
+    getSupportActionBar().addTab(tab);
+
+    if (savedInstanceState != null) {
+      getSupportActionBar().setSelectedNavigationItem(savedInstanceState.getInt("selectedTab"));
+    }
   }
 
-  @Override public void onTabReselected(Tab tab, FragmentTransaction trans) {
-    Log.d(TAG, "Tab reselected: " + tab.getText());
-  }
-
-  @Override public void onTabSelected(Tab tab, FragmentTransaction trans) {
-    Log.d(TAG, "Tab selected: " + tab.getText());
-  }
-
-  @Override public void onTabUnselected(Tab tab, FragmentTransaction trans) {
-    Log.d(TAG, "Tab unselected: " + tab.getText());
+  @Override protected void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putInt("selectedTab", getSupportActionBar().getSelectedTab().getPosition());
   }
 }
