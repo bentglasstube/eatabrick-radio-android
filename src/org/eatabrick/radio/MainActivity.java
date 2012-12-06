@@ -29,6 +29,7 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
       mService = ((PlayerService.PlayerBinder) binder).getService();
       mService.addPlayerListener(MainActivity.this);
       invalidateOptionsMenu();
+      requestSongInfo();
     }
 
     public void onServiceDisconnected(ComponentName className) {
@@ -124,6 +125,16 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
     }
 
     return true;
+  }
+
+  public void requestSongInfo() {
+    if (mService != null) {
+      NowPlayingFragment playingFragment = (NowPlayingFragment) getSupportFragmentManager().findFragmentByTag("playing");
+      if (playingFragment != null) {
+        playingFragment.updateSongInfo(mService.getTitle(), mService.getArtist(), mService.getAlbum());
+        playingFragment.updateProgress(mService.getElapsed(), mService.getLength());
+      }
+    }
   }
 
   public void onSongChange(final String title, final String artist, final String album, final int elapsed, final int length) {

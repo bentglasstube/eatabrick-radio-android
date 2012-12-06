@@ -189,7 +189,6 @@ public class PlayerService extends Service implements TrackPositionChangeListene
 
   public synchronized void addPlayerListener(PlayerListener listener) {
     mListeners.add(listener);
-    listener.onSongChange(mTitle, mArtist, mAlbum, mElapsed, mLength);
   }
 
   public synchronized void removePlayerListener(PlayerListener listener) {

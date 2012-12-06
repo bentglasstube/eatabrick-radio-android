@@ -37,6 +37,12 @@ public class NowPlayingFragment extends SherlockFragment {
     return view;
   }
 
+  @Override public void onActivityCreated(Bundle savedInstanceState) {
+    super.onActivityCreated(savedInstanceState);
+
+    ((MainActivity) getActivity()).requestSongInfo();
+  }
+
   public void updateSongInfo(String title, String artist, String album) {
     // TODO get album art
 
