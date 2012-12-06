@@ -1,8 +1,5 @@
 package org.eatabrick.radio;
 
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +7,10 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragment;
@@ -18,13 +19,21 @@ import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 import java.util.List;
+import java.util.Vector;
 import org.bff.javampd.objects.MPDSong;
 
 public class MainActivity extends SherlockFragmentActivity implements PlayerService.PlayerListener {
   private static final String TAG = "MainActivity";
 
+  public interface UpdateListener {
+    public void onSongUpdate(String title, String artist, String album, int elapsed, int length);
+    public void onPositionUpdate(int elapsed);
+  }
+
   private PlayerService mService;
   private SongListAdapter mAdapter;
+  private PagerAdapter mPagerAdapter;
+  private List<UpdateListener> mListeners;
 
   private ServiceConnection mConnection = new ServiceConnection() {
     public void onServiceConnected(ComponentName className, IBinder binder) {
@@ -32,7 +41,8 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
       mService = ((PlayerService.PlayerBinder) binder).getService();
       mService.addPlayerListener(MainActivity.this);
       invalidateOptionsMenu();
-      requestSongInfo();
+
+      sendSongUpdate(mService.getTitle(), mService.getArtist(), mService.getAlbum(), mService.getElapsed(), mService.getLength());
     }
 
     public void onServiceDisconnected(ComponentName className) {
@@ -46,32 +56,19 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
   @Override public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+    setContentView(R.layout.main);
 
-    ActionBar.Tab tab;
 
-    tab = getSupportActionBar().newTab();
-    tab.setText(getString(R.string.tab_now_playing));
-    tab.setTabListener(new TabListener<NowPlayingFragment> (this, "playing", NowPlayingFragment.class));
-    getSupportActionBar().addTab(tab);
+    List<Fragment> fragments = new Vector<Fragment>();
+    fragments.add(Fragment.instantiate(this, NowPlayingFragment.class.getName()));
+    fragments.add(Fragment.instantiate(this, QueueFragment.class.getName()));
 
-    tab = getSupportActionBar().newTab();
-    tab.setText(getString(R.string.tab_play_queue));
-    tab.setTabListener(new TabListener<QueueFragment> (this, "queue", QueueFragment.class));
-    getSupportActionBar().addTab(tab);
+    mPagerAdapter = new PagerAdapter(this, getSupportFragmentManager(), fragments);
 
-    /* not yet implemented
-    tab = getSupportActionBar().newTab();
-    tab.setText(getString(R.string.tab_search));
-    tab.setTabListener(new TabListener<FutureFragment> (this, "search", FutureFragment.class));
-    getSupportActionBar().addTab(tab);
-    */
-
-    if (savedInstanceState != null) {
-      getSupportActionBar().setSelectedNavigationItem(savedInstanceState.getInt("selectedTab"));
-    }
+    ((ViewPager) findViewById(R.id.pager)).setAdapter(mPagerAdapter);
 
     mAdapter = new SongListAdapter(this);
+    mListeners = new Vector<UpdateListener>();
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
@@ -130,40 +127,23 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
     return true;
   }
 
-  public void requestSongInfo() {
-    if (mService != null) {
-      NowPlayingFragment playingFragment = (NowPlayingFragment) getSupportFragmentManager().findFragmentByTag("playing");
-      if (playingFragment != null) {
-        playingFragment.updateSongInfo(mService.getTitle(), mService.getArtist(), mService.getAlbum());
-        playingFragment.updateProgress(mService.getElapsed(), mService.getLength());
-      }
-    }
-  }
-
   public void onSongChange(final String title, final String artist, final String album, final int elapsed, final int length) {
-    final NowPlayingFragment playingFragment = (NowPlayingFragment) getSupportFragmentManager().findFragmentByTag("playing");
-    if (playingFragment != null) {
-      runOnUiThread(new Runnable() {
-        public void run() {
-          playingFragment.updateSongInfo(title, artist, album);
-          playingFragment.updateProgress(elapsed, length);
-        }
-      });
-    }
+    runOnUiThread(new Runnable() {
+      public void run() {
+        sendSongUpdate(title, artist, album, elapsed, length);
+      }
+    });
   }
 
   public void onPositionChange(final int elapsed) {
-    final NowPlayingFragment playingFragment = (NowPlayingFragment) getSupportFragmentManager().findFragmentByTag("playing");
-    if (playingFragment != null) {
-      runOnUiThread(new Runnable() {
-        public void run() {
-          playingFragment.updateProgress(elapsed);
-        }
-      });
-    }
+    runOnUiThread(new Runnable() {
+      public void run() {
+        sendPositionUpdate(elapsed);
+      }
+    });
   }
 
-  public void onStatusChange(final boolean playing) {
+  public void onStatusChange(boolean playing) {
     runOnUiThread(new Runnable() {
       public void run() {
         invalidateOptionsMenu();
@@ -188,7 +168,27 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
     return mAdapter;
   }
 
+  public void addUpdateListener(UpdateListener listener) {
+    mListeners.add(listener);
+  }
+
+  public void removeUpdateListener(UpdateListener listener) {
+    mListeners.remove(listener);
+  }
+
   private void setMenuVisible(Menu menu, int menuId, boolean visible) {
     ((MenuItem) menu.findItem(menuId)).setVisible(visible);
+  }
+
+  private void sendSongUpdate(String title, String artist, String album, int elapsed, int length) {
+    for (UpdateListener listener : mListeners) {
+      listener.onSongUpdate(title, artist, album, elapsed, length);
+    }
+  }
+
+  private void sendPositionUpdate(int elapsed) {
+    for (UpdateListener listener : mListeners) {
+      listener.onPositionUpdate(elapsed);
+    }
   }
 }

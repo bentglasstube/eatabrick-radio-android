@@ -29,7 +29,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class NowPlayingFragment extends SherlockFragment {
+public class NowPlayingFragment extends SherlockFragment implements MainActivity.UpdateListener {
   private static final String TAG = "NowPlayingFragment";
 
   private ImageView mArt;
@@ -144,28 +144,33 @@ public class NowPlayingFragment extends SherlockFragment {
     return view;
   }
 
-  @Override public void onActivityCreated(Bundle savedInstanceState) {
-    super.onActivityCreated(savedInstanceState);
+  @Override public void onResume() {
+    super.onResume();
 
-    ((MainActivity) getActivity()).requestSongInfo();
+    ((MainActivity) getActivity()).addUpdateListener(this);
   }
 
-  public void updateSongInfo(String title, String artist, String album) {
+  @Override public void onPause() {
+    super.onPause();
+
+    ((MainActivity) getActivity()).removeUpdateListener(this);
+  }
+
+  public void onSongUpdate(String title, String artist, String album, int elapsed, int length) {
     mTitle.setText(title);
     mArtist.setText(artist);
     mAlbum.setText(album);
 
-    new GetAlbumArtTask().execute(artist, album);
-  }
+    mElapsed.setText(String.format("%d:%02d", elapsed / 60, elapsed % 60));
+    mSeek.setProgress(elapsed);
 
-  public void updateProgress(int elapsed, int length) {
     mLength.setText(String.format("%d:%02d", length / 60, length % 60));
     mSeek.setMax(length);
 
-    updateProgress(elapsed);
+    new GetAlbumArtTask().execute(artist, album);
   }
 
-  public void updateProgress(int elapsed) {
+  public void onPositionUpdate(int elapsed) {
     mElapsed.setText(String.format("%d:%02d", elapsed / 60, elapsed % 60));
     mSeek.setProgress(elapsed);
   }
