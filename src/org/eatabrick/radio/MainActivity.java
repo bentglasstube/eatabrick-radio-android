@@ -51,11 +51,18 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
     tab.setTabListener(new TabListener<NowPlayingFragment> (this, "playing", NowPlayingFragment.class));
     getSupportActionBar().addTab(tab);
 
-    /* skip second tab
+    /* These tabs are not yet implemented
+
     tab = getSupportActionBar().newTab();
     tab.setText(getString(R.string.tab_play_queue));
-    tab.setTabListener(new TabListener<QueueFragment> (this, "queue", QueueFragment.class));
+    tab.setTabListener(new TabListener<FutureFragment> (this, "queue", FutureFragment.class));
     getSupportActionBar().addTab(tab);
+
+    tab = getSupportActionBar().newTab();
+    tab.setText(getString(R.string.tab_search));
+    tab.setTabListener(new TabListener<FutureFragment> (this, "search", FutureFragment.class));
+    getSupportActionBar().addTab(tab);
+
     */
 
     if (savedInstanceState != null) {

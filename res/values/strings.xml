@@ -2,8 +2,10 @@
 <resources>
   <string name="app_name">Eat a Brick Radio</string>
   <string name="tab_now_playing">Playing Now</string>
-  <string name="tab_play_queue">Upcoming</string>
+  <string name="tab_play_queue">Upcoming Songs</string>
+  <string name="tab_search">Request Song</string>
   <string name="menu_play">Play</string>
   <string name="menu_stop">Pause</string>
   <string name="menu_skip">Skip</string>
+  <string name="future_version">This feature has not been implemented yet.  It will be available in a future version.</string>
 </resources>
