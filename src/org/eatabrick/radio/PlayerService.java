@@ -206,9 +206,12 @@ public class PlayerService extends Service implements TrackPositionChangeListene
       if (id != mSongId) {
         mSongId = id;
 
+        MPDArtist artist = song.getArtist();
+        MPDAlbum album = song.getAlbum();
+
         mTitle = song.getTitle();
-        mArtist = song.getArtist().toString();
-        mAlbum = song.getAlbum().toString();
+        mArtist = (artist == null) ? "" : artist.toString();
+        mAlbum = (album == null) ? "" : album.toString();
 
         mElapsed = (int) player.getElapsedTime();
         mLength = song.getLength();
@@ -229,10 +232,6 @@ public class PlayerService extends Service implements TrackPositionChangeListene
       Log.d(TAG, "MPD Player error: " + e.getMessage());
     } catch (MPDPlaylistException e) {
       Log.d(TAG, "MPD Playlist error: " + e.getMessage());
-    } catch (NullPointerException e) {
-      e.printStackTrace();
-
-      // Keep calm and carry on
     }
   }
 

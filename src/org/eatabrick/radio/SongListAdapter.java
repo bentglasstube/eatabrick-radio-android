@@ -27,8 +27,12 @@ public class SongListAdapter extends ArrayAdapter<MPDSong> {
     MPDSong song = getItem(pos);
 
     ((TextView) view.findViewById(R.id.song_title)).setText(song.getTitle());
-    ((TextView) view.findViewById(R.id.song_artist)).setText(song.getArtist().toString());
-    ((TextView) view.findViewById(R.id.song_album)).setText(song.getAlbum().toString());
+
+    MPDArtist artist = song.getArtist();
+    MPDAlbum album = song.getAlbum();
+
+    if (artist != null) ((TextView) view.findViewById(R.id.song_artist)).setText(artist.toString());
+    if (album != null) ((TextView) view.findViewById(R.id.song_album)).setText(album.toString());
 
     ((ImageView) view.findViewById(R.id.song_status)).setImageResource(pos == mCurrentSong ? R.drawable.ic_menu_play : 0);
 
