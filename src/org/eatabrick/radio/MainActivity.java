@@ -175,7 +175,9 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
     runOnUiThread(new Runnable() {
       public void run() {
         mAdapter.clear();
-        mAdapter.addAll(songList);
+        for (MPDSong song : songList) {
+          mAdapter.add(song);
+        }
         mAdapter.setCurrentSong(pos);
         mAdapter.notifyDataSetChanged();
       }
