@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import java.io.IOException;
@@ -305,11 +306,11 @@ public class PlayerService extends Service implements TrackPositionChangeListene
 
     try {
       mPlayer.setDataSource(this, streamUri);
+      mPlayer.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
       mPlayer.prepareAsync();
 
       mPlaying = true;
       sendStatusChange();
-
       showNotification();
     } catch (IOException e) {
       Log.d(TAG, "I/O exception: " + e.getMessage());
@@ -326,7 +327,6 @@ public class PlayerService extends Service implements TrackPositionChangeListene
 
     mPlaying = false;
     sendStatusChange();
-
     stopForeground(true);
     stopSelf();
   }
