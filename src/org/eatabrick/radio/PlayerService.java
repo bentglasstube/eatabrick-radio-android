@@ -38,6 +38,10 @@ public class PlayerService extends Service implements TrackPositionChangeListene
   private MPD mServer;
   private MPDStandAloneMonitor mMonitor;
   private List<PlayerListener> mListeners;
+
+  private List<MPDSong> mSongList;
+  private int           mSongPos;
+
   private boolean mPlaying = false;
 
   private int    mSongId  = 0;
@@ -59,6 +63,7 @@ public class PlayerService extends Service implements TrackPositionChangeListene
     public void onSongChange(String title, String artist, String album, int elapsed, int length);
     public void onPositionChange(int elapsed);
     public void onStatusChange(boolean mPlaying);
+    public void onQueueChange(List <MPDSong> songList, int pos);
   }
 
   private Handler handler = new Handler();
@@ -192,6 +197,7 @@ public class PlayerService extends Service implements TrackPositionChangeListene
 
   private void updateSongInformation() {
     MPDPlayer player = mServer.getMPDPlayer();
+    MPDPlaylist playlist = mServer.getMPDPlaylist();
 
     try {
       MPDSong song = player.getCurrentSong();
@@ -213,11 +219,19 @@ public class PlayerService extends Service implements TrackPositionChangeListene
 
         sendSongChange();
       }
+
+      mSongList = playlist.getSongList();
+      mSongPos = playlist.getCurrentSong().getPosition();
+      sendQueueChange();
     } catch (MPDConnectionException e) {
       Log.d(TAG, "Error connecting to MPD: " + e.getMessage());
     } catch (MPDPlayerException e) {
       Log.d(TAG, "MPD Player error: " + e.getMessage());
+    } catch (MPDPlaylistException e) {
+      Log.d(TAG, "MPD Playlist error: " + e.getMessage());
     } catch (NullPointerException e) {
+      e.printStackTrace();
+
       // Keep calm and carry on
     }
   }
@@ -262,6 +276,12 @@ public class PlayerService extends Service implements TrackPositionChangeListene
   private synchronized void sendStatusChange() {
     for (PlayerListener listener : mListeners) {
       listener.onStatusChange(mPlaying);
+    }
+  }
+
+  private synchronized void sendQueueChange() {
+    for (PlayerListener listener : mListeners) {
+      listener.onQueueChange(mSongList, mSongPos);
     }
   }
 

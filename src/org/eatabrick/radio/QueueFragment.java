@@ -16,19 +16,14 @@ import com.actionbarsherlock.app.SherlockListFragment;
 public class QueueFragment extends SherlockListFragment {
   private static final String TAG = "QueueFragment";
 
-  private static final class Radio {
-    public static final String[] TITLES = {
-      "Rockman 4: All Stage Clear",
-      "Wish Upon a Star ~ Broken Promise",
-      "Fort Condor",
-      "Breath of Fire",
-      "Fairy's Doorway"
-    };
-  }
+  private SongListAdapter mAdapter;
 
   @Override public void onActivityCreated(Bundle savedInstanceState) {
+    Log.d(TAG, "Activity created");
+
     super.onActivityCreated(savedInstanceState);
 
-    setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, Radio.TITLES));
+    mAdapter = ((MainActivity) getActivity()).getQueueAdapter();
+    setListAdapter(mAdapter);
   }
 }

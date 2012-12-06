@@ -17,11 +17,14 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+import java.util.List;
+import org.bff.javampd.objects.MPDSong;
 
 public class MainActivity extends SherlockFragmentActivity implements PlayerService.PlayerListener {
   private static final String TAG = "MainActivity";
 
   private PlayerService mService;
+  private SongListAdapter mAdapter;
 
   private ServiceConnection mConnection = new ServiceConnection() {
     public void onServiceConnected(ComponentName className, IBinder binder) {
@@ -52,23 +55,23 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
     tab.setTabListener(new TabListener<NowPlayingFragment> (this, "playing", NowPlayingFragment.class));
     getSupportActionBar().addTab(tab);
 
-    /* These tabs are not yet implemented
-
     tab = getSupportActionBar().newTab();
     tab.setText(getString(R.string.tab_play_queue));
-    tab.setTabListener(new TabListener<FutureFragment> (this, "queue", FutureFragment.class));
+    tab.setTabListener(new TabListener<QueueFragment> (this, "queue", QueueFragment.class));
     getSupportActionBar().addTab(tab);
 
+    /* not yet implemented
     tab = getSupportActionBar().newTab();
     tab.setText(getString(R.string.tab_search));
     tab.setTabListener(new TabListener<FutureFragment> (this, "search", FutureFragment.class));
     getSupportActionBar().addTab(tab);
-
     */
 
     if (savedInstanceState != null) {
       getSupportActionBar().setSelectedNavigationItem(savedInstanceState.getInt("selectedTab"));
     }
+
+    mAdapter = new SongListAdapter(this);
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
@@ -166,6 +169,21 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
         invalidateOptionsMenu();
       }
     });
+  }
+
+  public void onQueueChange(final List<MPDSong> songList, final int pos) {
+    runOnUiThread(new Runnable() {
+      public void run() {
+        mAdapter.clear();
+        mAdapter.addAll(songList);
+        mAdapter.setCurrentSong(pos);
+        mAdapter.notifyDataSetChanged();
+      }
+    });
+  }
+
+  public SongListAdapter getQueueAdapter() {
+    return mAdapter;
   }
 
   private void setMenuVisible(Menu menu, int menuId, boolean visible) {
