@@ -71,12 +71,6 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
     mListeners = new Vector<UpdateListener>();
   }
 
-  @Override protected void onSaveInstanceState(Bundle outState) {
-    super.onSaveInstanceState(outState);
-
-    outState.putInt("selectedTab", getSupportActionBar().getSelectedTab().getPosition());
-  }
-
   @Override public void onResume() {
     super.onResume();
     bindService(new Intent(this, PlayerService.class), mConnection, BIND_AUTO_CREATE);
