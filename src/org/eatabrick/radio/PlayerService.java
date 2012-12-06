@@ -7,12 +7,14 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +31,10 @@ public class PlayerService extends Service implements TrackPositionChangeListene
   public static final String ACTION_SKIP = "org.eatabrick.radio.PlayerService.ACTION_SKIP";
   public static final String ACTION_STOP = "org.eatabrick.radio.PlayerService.ACTION_STOP";
 
-  private final IBinder mBinder = new PlayerBinder();
+  private final IBinder binder = new PlayerBinder();
+  private final Uri streamUri = Uri.parse("http://radio.eatabrick.org:8000/radio.mp3");
+
+  private MediaPlayer mPlayer;
   private MPD mServer;
   private MPDStandAloneMonitor mMonitor;
   private List<PlayerListener> mListeners;
@@ -112,11 +117,6 @@ public class PlayerService extends Service implements TrackPositionChangeListene
       Log.d(TAG, "Got intent with null action");
     } else if (action.equals(ACTION_PLAY)) {
       startMusic();
-
-      mPlaying = true;
-      sendStatusChange();
-
-      showNotification();
     } else if (action.equals(ACTION_SKIP)) {
 
       new Thread(new Runnable() {
@@ -135,18 +135,13 @@ public class PlayerService extends Service implements TrackPositionChangeListene
     } else if (action.equals(ACTION_STOP)) {
       stopMusic();
 
-      mPlaying = false;
-      sendStatusChange();
-
-      stopForeground(true);
-      stopSelf();
     }
 
     return START_STICKY;
   }
 
   @Override public IBinder onBind(Intent intent) {
-    return mBinder;
+    return binder;
   }
 
   public void trackPositionChanged(TrackPositionChangeEvent event) {
@@ -271,10 +266,49 @@ public class PlayerService extends Service implements TrackPositionChangeListene
   }
 
   private void startMusic() {
-    // TODO start music
+    mPlayer = new MediaPlayer();
+
+    mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+      public boolean onError(MediaPlayer player, int what, int extra) {
+        Log.d(TAG, "Media player error: " + what + " : " + extra);
+
+        // TODO show errors
+
+        return false;
+      }
+    });
+
+    mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+      public void onPrepared(MediaPlayer player) {
+        player.start();
+      }
+    });
+
+    try {
+      mPlayer.setDataSource(this, streamUri);
+      mPlayer.prepareAsync();
+
+      mPlaying = true;
+      sendStatusChange();
+
+      showNotification();
+    } catch (IOException e) {
+      Log.d(TAG, "I/O exception: " + e.getMessage());
+    } catch (IllegalStateException e) {
+      Log.d(TAG, "Illegal state: " + e.getMessage());
+    }
   }
 
   private void stopMusic() {
-    // TODO stop music
+    if (mPlayer != null) {
+      mPlayer.stop();
+      mPlayer.release();
+    }
+
+    mPlaying = false;
+    sendStatusChange();
+
+    stopForeground(true);
+    stopSelf();
   }
 }
