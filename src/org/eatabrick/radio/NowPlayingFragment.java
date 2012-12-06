@@ -99,7 +99,7 @@ public class NowPlayingFragment extends SherlockFragment implements MainActivity
         InputSource input = new InputSource(albumInfo.openStream());
         reader.parse(input);
       } catch (Exception e) {
-        e.printStackTrace();
+        new LoadAlbumArtTask().execute();
       }
 
       return null;

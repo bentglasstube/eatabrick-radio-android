@@ -207,12 +207,9 @@ public class PlayerService extends Service implements TrackPositionChangeListene
       if (id != mSongId) {
         mSongId = id;
 
-        MPDArtist artist = song.getArtist();
-        MPDAlbum album = song.getAlbum();
-
-        mTitle = song.getTitle();
-        mArtist = (artist == null) ? "" : artist.toString();
-        mAlbum = (album == null) ? "" : album.toString();
+        mTitle  = song.getTitle()  == null ? getString(R.string.missing_title)  : song.getTitle();
+        mArtist = song.getArtist() == null ? getString(R.string.missing_artist) : song.getArtist().toString();
+        mAlbum  = song.getAlbum()  == null ? getString(R.string.missing_album)  : song.getAlbum().toString();
 
         mElapsed = (int) player.getElapsedTime();
         mLength = song.getLength();
