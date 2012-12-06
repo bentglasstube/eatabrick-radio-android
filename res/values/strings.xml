@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="app_name">Eat a Brick Radio</string>
-  <string name="app_label">EaB Radio</string>
   <string name="tab_now_playing">Playing Now</string>
   <string name="tab_play_queue">Upcoming</string>
+  <string name="menu_play">Play</string>
+  <string name="menu_stop">Pause</string>
+  <string name="menu_skip">Skip</string>
 </resources>
