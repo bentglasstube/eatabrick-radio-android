@@ -65,7 +65,7 @@ public class NowPlayingFragment extends SherlockFragment implements MainActivity
         public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
           if (localName.equalsIgnoreCase("image")) {
             String size = attributes.getValue("size");
-            if (size.equals("mega")) {
+            if (size.equals("extralarge")) {
               inElem = true;
             }
           }
