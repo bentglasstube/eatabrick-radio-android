@@ -5,8 +5,8 @@
   android:layout_height="fill_parent">
   <ImageView android:id="@+id/playing_art"
     android:src="@drawable/album"
-    android:paddingTop="10sp"
-    android:paddingBottom="10sp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
     android:scaleType="fitCenter"
     android:layout_weight="1"
     android:layout_width="fill_parent"
@@ -33,7 +33,8 @@
     android:gravity="center"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content" />
-  <SeekBar android:id="@+id/seek"
+  <ProgressBar android:id="@+id/seek"
+    style="?android:attr/progressBarStyleHorizontal"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content" />
   <LinearLayout android:orientation="horizontal"

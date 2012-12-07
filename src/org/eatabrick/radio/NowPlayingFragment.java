@@ -12,7 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.SeekBar;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.actionbarsherlock.app.SherlockFragment;
 import java.io.FileNotFoundException;
@@ -32,13 +32,13 @@ import org.xml.sax.helpers.DefaultHandler;
 public class NowPlayingFragment extends SherlockFragment implements MainActivity.UpdateListener {
   private static final String TAG = "NowPlayingFragment";
 
-  private ImageView mArt;
-  private TextView  mTitle;
-  private TextView  mArtist;
-  private TextView  mAlbum;
-  private TextView  mElapsed;
-  private TextView  mLength;
-  private SeekBar   mSeek;
+  private ImageView   mArt;
+  private TextView    mTitle;
+  private TextView    mArtist;
+  private TextView    mAlbum;
+  private TextView    mElapsed;
+  private TextView    mLength;
+  private ProgressBar mSeek;
 
   private class GetAlbumArtTask extends AsyncTask<String, Void, Void> {
     protected Void doInBackground(String... strings) {
@@ -133,13 +133,13 @@ public class NowPlayingFragment extends SherlockFragment implements MainActivity
   @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.playing, container, false);
 
-    mArt     = (ImageView) view.findViewById(R.id.playing_art);
-    mTitle   = (TextView)  view.findViewById(R.id.playing_title);
-    mArtist  = (TextView)  view.findViewById(R.id.playing_artist);
-    mAlbum   = (TextView)  view.findViewById(R.id.playing_album);
-    mElapsed = (TextView)  view.findViewById(R.id.seek_current);
-    mLength  = (TextView)  view.findViewById(R.id.seek_total);
-    mSeek    = (SeekBar)   view.findViewById(R.id.seek);
+    mArt     = (ImageView)   view.findViewById(R.id.playing_art);
+    mTitle   = (TextView)    view.findViewById(R.id.playing_title);
+    mArtist  = (TextView)    view.findViewById(R.id.playing_artist);
+    mAlbum   = (TextView)    view.findViewById(R.id.playing_album);
+    mElapsed = (TextView)    view.findViewById(R.id.seek_current);
+    mLength  = (TextView)    view.findViewById(R.id.seek_total);
+    mSeek    = (ProgressBar) view.findViewById(R.id.seek);
 
     return view;
   }
