@@ -3,14 +3,22 @@
   android:orientation="vertical"
   android:layout_width="fill_parent"
   android:layout_height="fill_parent">
-  <ImageView android:id="@+id/playing_art"
-    android:src="@drawable/album"
-    android:paddingTop="8dp"
+  <RelativeLayout android:paddingTop="8dp"
     android:paddingBottom="8dp"
-    android:scaleType="fitCenter"
     android:layout_weight="1"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" />
+    android:layout_height="fill_parent">
+    <ImageView android:id="@+id/playing_art"
+      android:src="@drawable/album"
+      android:scaleType="fitCenter"
+      android:layout_width="fill_parent"
+      android:layout_height="fill_parent" />
+    <ProgressBar android:id="@+id/downloading"
+      android:visibility="gone"
+      android:layout_centerInParent="true"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content" />
+  </RelativeLayout>
   <TextView android:id="@+id/playing_title"
     android:textSize="20sp"
     android:textColor="#fff"

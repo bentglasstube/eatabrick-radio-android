@@ -32,13 +32,16 @@ import org.xml.sax.helpers.DefaultHandler;
 public class NowPlayingFragment extends SherlockFragment implements MainActivity.UpdateListener {
   private static final String TAG = "NowPlayingFragment";
 
-  private ImageView   mArt;
-  private TextView    mTitle;
-  private TextView    mArtist;
-  private TextView    mAlbum;
-  private TextView    mElapsed;
-  private TextView    mLength;
-  private ProgressBar mSeek;
+  private Bitmap          mAlbumArt;
+  private GetAlbumArtTask mAlbumArtTask;
+  private ProgressBar     mDownloading;
+  private ImageView       mArt;
+  private TextView        mTitle;
+  private TextView        mArtist;
+  private TextView        mAlbum;
+  private TextView        mElapsed;
+  private TextView        mLength;
+  private ProgressBar     mSeek;
 
   private class GetAlbumArtTask extends AsyncTask<String, Void, Void> {
     protected Void doInBackground(String... strings) {
@@ -55,11 +58,19 @@ public class NowPlayingFragment extends SherlockFragment implements MainActivity
         public void endDocument() throws SAXException {
           if (!data.equals("")) {
             Log.d(TAG, "Album art found at " + data);
-            new LoadAlbumArtTask().execute(data);
+
+            try {
+              URL url = new URL(data);
+              InputStream is = url.openConnection().getInputStream();
+              Bitmap art = BitmapFactory.decodeStream(is);
+              setAlbumArt(art);
+            } catch (Exception e) {
+              Log.d(TAG, "Error: " + e.getMessage());
+            }
           } else {
             Log.d(TAG, "No album art found");
-            new LoadAlbumArtTask().execute();
           }
+
         }
 
         public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
@@ -99,47 +110,48 @@ public class NowPlayingFragment extends SherlockFragment implements MainActivity
         InputSource input = new InputSource(albumInfo.openStream());
         reader.parse(input);
       } catch (Exception e) {
-        new LoadAlbumArtTask().execute();
-      }
-
-      return null;
-    }
-  }
-
-  private class LoadAlbumArtTask extends AsyncTask<String, Void, Bitmap> {
-    protected Bitmap doInBackground(String... strings) {
-      if (strings.length > 0) {
-        try {
-          URL url = new URL(strings[0]);
-          InputStream is = url.openConnection().getInputStream();
-          return BitmapFactory.decodeStream(is);
-        } catch (Exception e) {
-          Log.d(TAG, "Error: " + e.getMessage());
-        }
+        e.printStackTrace();
       }
 
       return null;
     }
 
-    protected void onPostExecute(Bitmap result) {
-      if (result == null) {
-        mArt.setImageResource(R.drawable.album);
-      } else {
-        mArt.setImageBitmap(result);
+    protected void onPreExecute() {
+      mArt.setImageResource(R.drawable.album);
+      setAlbumArt(null);
+
+      if (mDownloading != null) mDownloading.setVisibility(View.VISIBLE);
+    }
+
+    protected void onPostExecute(Void result) {
+      if (getAlbumArt() != null) {
+        mArt.setImageBitmap(getAlbumArt());
       }
+
+      if (mDownloading != null) mDownloading.setVisibility(View.GONE);
     }
   }
 
   @Override public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.playing, container, false);
 
-    mArt     = (ImageView)   view.findViewById(R.id.playing_art);
-    mTitle   = (TextView)    view.findViewById(R.id.playing_title);
-    mArtist  = (TextView)    view.findViewById(R.id.playing_artist);
-    mAlbum   = (TextView)    view.findViewById(R.id.playing_album);
-    mElapsed = (TextView)    view.findViewById(R.id.seek_current);
-    mLength  = (TextView)    view.findViewById(R.id.seek_total);
-    mSeek    = (ProgressBar) view.findViewById(R.id.seek);
+    mDownloading = (ProgressBar) view.findViewById(R.id.downloading);
+    mArt         = (ImageView)   view.findViewById(R.id.playing_art);
+    mTitle       = (TextView)    view.findViewById(R.id.playing_title);
+    mArtist      = (TextView)    view.findViewById(R.id.playing_artist);
+    mAlbum       = (TextView)    view.findViewById(R.id.playing_album);
+    mElapsed     = (TextView)    view.findViewById(R.id.seek_current);
+    mLength      = (TextView)    view.findViewById(R.id.seek_total);
+    mSeek        = (ProgressBar) view.findViewById(R.id.seek);
+
+    if (mAlbumArtTask != null) {
+      AsyncTask.Status status = mAlbumArtTask.getStatus();
+      if (status == AsyncTask.Status.FINISHED) {
+        mDownloading.setVisibility(View.GONE);
+      } else {
+        mDownloading.setVisibility(View.VISIBLE);
+      }
+    }
 
     return view;
   }
@@ -167,11 +179,21 @@ public class NowPlayingFragment extends SherlockFragment implements MainActivity
     mLength.setText(String.format("%d:%02d", length / 60, length % 60));
     mSeek.setMax(length);
 
-    new GetAlbumArtTask().execute(artist, album);
+    if (mAlbumArtTask != null) mAlbumArtTask.cancel(true);
+    mAlbumArtTask = new GetAlbumArtTask();
+    mAlbumArtTask.execute(artist, album);
   }
 
   public void onPositionUpdate(int elapsed) {
     mElapsed.setText(String.format("%d:%02d", elapsed / 60, elapsed % 60));
     mSeek.setProgress(elapsed);
+  }
+
+  public void setAlbumArt(Bitmap art) {
+    mAlbumArt = art;
+  }
+
+  public Bitmap getAlbumArt() {
+    return mAlbumArt;
   }
 }
