@@ -1,6 +1,7 @@
 package org.eatabrick.radio;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -14,7 +15,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import com.actionbarsherlock.app.SherlockFragment;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +29,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class NowPlayingFragment extends SherlockFragment implements MainActivity.UpdateListener {
+public class NowPlayingFragment extends Fragment implements MainActivity.UpdateListener {
   private static final String TAG = "NowPlayingFragment";
 
   private Bitmap          mAlbumArt;

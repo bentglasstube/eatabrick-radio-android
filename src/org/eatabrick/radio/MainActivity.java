@@ -1,5 +1,10 @@
 package org.eatabrick.radio;
 
+import android.app.ActionBar;
+import android.app.Fragment;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -7,22 +12,17 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.app.Activity;;
 import android.util.Log;
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockFragment;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import java.util.List;
 import java.util.Vector;
 import org.bff.javampd.objects.MPDSong;
 
-public class MainActivity extends SherlockFragmentActivity implements PlayerService.PlayerListener {
+public class MainActivity extends Activity implements PlayerService.PlayerListener {
   private static final String TAG = "MainActivity";
 
   public interface UpdateListener {
@@ -63,7 +63,7 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
     fragments.add(Fragment.instantiate(this, NowPlayingFragment.class.getName()));
     fragments.add(Fragment.instantiate(this, QueueFragment.class.getName()));
 
-    mPagerAdapter = new PagerAdapter(this, getSupportFragmentManager(), fragments);
+    mPagerAdapter = new PagerAdapter(this, getFragmentManager(), fragments);
 
     ((ViewPager) findViewById(R.id.pager)).setAdapter(mPagerAdapter);
 
@@ -82,7 +82,7 @@ public class MainActivity extends SherlockFragmentActivity implements PlayerServ
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
-    MenuInflater inflater = getSupportMenuInflater();
+    MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.main, menu);
     return true;
   }
