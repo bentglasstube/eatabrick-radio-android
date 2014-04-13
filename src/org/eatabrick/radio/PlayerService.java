@@ -33,7 +33,7 @@ public class PlayerService extends Service implements TrackPositionChangeListene
   public static final String ACTION_STOP = "org.eatabrick.radio.PlayerService.ACTION_STOP";
 
   private final IBinder binder = new PlayerBinder();
-  private final Uri streamUri = Uri.parse("http://radio.eatabrick.org:8000/radio.mp3");
+  private final Uri streamUri = Uri.parse("http://radio.eatabrick.org/listen.mp3");
 
   private MediaPlayer mPlayer;
   private MPD mServer;
@@ -77,7 +77,7 @@ public class PlayerService extends Service implements TrackPositionChangeListene
     new Thread(new Runnable() {
       public void run() {
         try {
-          mServer = new MPD("radio.eatabrick.org");
+          mServer = new MPD("alan.radio.eatabrick.org");
           Log.d(TAG, "Connected to MPD version " + mServer.getVersion());
 
           MPDStandAloneMonitor mMonitor = new MPDStandAloneMonitor(mServer, 250);
