@@ -287,9 +287,11 @@ public class PlayerService extends Service implements TrackPositionChangeListene
 
     mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
       public boolean onError(MediaPlayer player, int what, int extra) {
-        Log.d(TAG, "Media player error: " + what + " : " + extra);
+        Log.d(TAG, "MP - Error : " + what + " : " + extra);
+        player.stop();
+        player.release();
 
-        // TODO show errors
+        startMusic();
 
         return false;
       }
@@ -297,7 +299,20 @@ public class PlayerService extends Service implements TrackPositionChangeListene
 
     mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
       public void onPrepared(MediaPlayer player) {
+        Log.d(TAG, "MP - Prepared");
         player.start();
+      }
+    });
+
+    mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+      public void onCompletion(MediaPlayer player) {
+        // TODO show message about reconnecting
+        Log.d(TAG, "MP - Completion");
+
+        player.stop();
+        player.release();
+
+        startMusic();
       }
     });
 
