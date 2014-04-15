@@ -3,6 +3,7 @@ package org.eatabrick.radio;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.util.Log;
 
 public class PlayerReceiver extends BroadcastReceiver {
@@ -17,9 +18,15 @@ public class PlayerReceiver extends BroadcastReceiver {
     Log.d(TAG, "Got broadcast intent: " + action);
 
     if (action.equals(ACTION_STOP)) {
-      context.startService(new Intent(PlayerService.ACTION_STOP, null, context, PlayerService.class));
+      sendAction(context, PlayerService.ACTION_STOP);
     } else if (action.equals(ACTION_SKIP)) {
-      context.startService(new Intent(PlayerService.ACTION_SKIP, null, context, PlayerService.class));
+      sendAction(context, PlayerService.ACTION_SKIP);
+    } else if (action.equals(AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
+      sendAction(context, PlayerService.ACTION_STOP);
     }
+  }
+
+  private void sendAction(Context context, String action) {
+    context.startService(new Intent(action, null, context, PlayerService.class));
   }
 }
