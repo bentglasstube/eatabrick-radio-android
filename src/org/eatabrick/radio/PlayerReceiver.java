@@ -23,7 +23,7 @@ public class PlayerReceiver extends BroadcastReceiver {
     } else if (action.equals(ACTION_SKIP)) {
       sendAction(context, PlayerService.ACTION_SKIP);
     } else if (action.equals(AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
-      sendAction(context, PlayerService.ACTION_STOP);
+      sendAction(context, PlayerService.ACTION_PAUSE);
     } else if (action.equals(Intent.ACTION_MEDIA_BUTTON)) {
       KeyEvent event = (KeyEvent) intent.getExtras().get(Intent.EXTRA_KEY_EVENT);
       if (event.getAction() != KeyEvent.ACTION_DOWN) return;
