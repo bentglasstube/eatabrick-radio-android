@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.RemoteControlClient;
 import android.net.Uri;
@@ -37,6 +38,8 @@ public class PlayerService extends Service
   private static final String TAG = "PlayerService";
 
   public static final String ACTION_PLAY = "org.eatabrick.radio.PlayerService.ACTION_PLAY";
+  public static final String ACTION_PAUSE = "org.eatabrick.radio.PlayerService.ACTION_PAUSE";
+  public static final String ACTION_TOGGLE = "org.eatabrick.radio.PlayerService.ACTION_TOGGLE";
   public static final String ACTION_SKIP = "org.eatabrick.radio.PlayerService.ACTION_SKIP";
   public static final String ACTION_STOP = "org.eatabrick.radio.PlayerService.ACTION_STOP";
 
@@ -149,7 +152,10 @@ public class PlayerService extends Service
       if (!mPlaying) stopSelf();
     } else if (action.equals(ACTION_STOP)) {
       stopMusic();
-
+    } else if (action.equals(ACTION_PAUSE)) {
+      pauseMusic();
+    } else if (action.equals(ACTION_TOGGLE)) {
+      toggleMusic();
     }
 
     return START_STICKY;
@@ -241,9 +247,9 @@ public class PlayerService extends Service
         mLength = song.getLength();
 
         if (mPlaying) showNotification();
-
         Log.d(TAG, "Song changed: " + mTitle);
 
+        setRemoteData();
         sendSongChange();
       }
 
@@ -355,13 +361,23 @@ public class PlayerService extends Service
         sendStatusChange();
         showNotification();
 
-        ComponentName receiver = new ComponentName(getPackageName(), PlayerReceiver.class.getName());
-        manager.registerMediaButtonEventReceiver(receiver);
-        Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
-        mediaButtonIntent.setComponent(receiver);
-        PendingIntent mediaPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, mediaButtonIntent, 0);
-        mRemote = new RemoteControlClient(mediaPendingIntent);
-        manager.registerRemoteControlClient(mRemote);
+        if (mRemote == null) {
+          ComponentName receiver = new ComponentName(getPackageName(), PlayerReceiver.class.getName());
+          manager.registerMediaButtonEventReceiver(receiver);
+          Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+          mediaButtonIntent.setComponent(receiver);
+          PendingIntent mediaPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, mediaButtonIntent, 0);
+          mRemote = new RemoteControlClient(mediaPendingIntent);
+          manager.registerRemoteControlClient(mRemote);
+        }
+
+        mRemote.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
+        mRemote.setTransportControlFlags(
+            RemoteControlClient.FLAG_KEY_MEDIA_PLAY |
+            RemoteControlClient.FLAG_KEY_MEDIA_NEXT |
+            RemoteControlClient.FLAG_KEY_MEDIA_STOP );
+
+        setRemoteData();
       }
     } catch (IOException e) {
       Log.d(TAG, "I/O exception: " + e.getMessage());
@@ -376,6 +392,10 @@ public class PlayerService extends Service
       mPlayer.release();
     }
 
+    if (mRemote != null) {
+      mRemote.setPlaybackState(RemoteControlClient.PLAYSTATE_STOPPED);
+    }
+
     AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
     manager.abandonAudioFocus(this);
 
@@ -385,9 +405,41 @@ public class PlayerService extends Service
     stopSelf();
   }
 
+  private void pauseMusic() {
+    if (mPlayer != null) {
+      mPlayer.stop();
+      mPlayer.release();
+    }
+
+    if (mRemote != null) {
+      mRemote.setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
+    }
+
+    mPlaying = false;
+  }
+
+  private void toggleMusic() {
+    if (mPlaying) {
+      pauseMusic();
+    } else {
+      startMusic();
+    }
+  }
+
   private void setVolume(float volume) {
     if (mPlayer != null) {
       mPlayer.setVolume(volume, volume);
+    }
+  }
+
+  private void setRemoteData() {
+    if (mRemote != null) {
+      mRemote.editMetadata(true)
+        .putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, mArtist)
+        .putString(MediaMetadataRetriever.METADATA_KEY_ALBUM, mAlbum)
+        .putString(MediaMetadataRetriever.METADATA_KEY_TITLE, mTitle)
+        .putLong(MediaMetadataRetriever.METADATA_KEY_DURATION, mLength)
+        .apply();
     }
   }
 }
