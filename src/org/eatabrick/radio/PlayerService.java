@@ -4,11 +4,13 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.RemoteControlClient;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
@@ -45,6 +47,7 @@ public class PlayerService extends Service
   private MPD mServer;
   private MPDStandAloneMonitor mMonitor;
   private List<PlayerListener> mListeners;
+  private RemoteControlClient mRemote;
 
   private List<MPDSong> mSongList;
   private int           mSongPos;
@@ -351,6 +354,14 @@ public class PlayerService extends Service
         mPlaying = true;
         sendStatusChange();
         showNotification();
+
+        ComponentName receiver = new ComponentName(getPackageName(), PlayerReceiver.class.getName());
+        manager.registerMediaButtonEventReceiver(receiver);
+        Intent mediaButtonIntent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+        mediaButtonIntent.setComponent(receiver);
+        PendingIntent mediaPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, mediaButtonIntent, 0);
+        mRemote = new RemoteControlClient(mediaPendingIntent);
+        manager.registerRemoteControlClient(mRemote);
       }
     } catch (IOException e) {
       Log.d(TAG, "I/O exception: " + e.getMessage());
