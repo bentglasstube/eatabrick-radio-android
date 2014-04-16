@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
@@ -25,7 +26,12 @@ import org.bff.javampd.exception.*;
 import org.bff.javampd.monitor.MPDStandAloneMonitor;
 import org.bff.javampd.objects.*;
 
-public class PlayerService extends Service implements TrackPositionChangeListener, PlayerBasicChangeListener, PlaylistBasicChangeListener {
+public class PlayerService extends Service
+  implements TrackPositionChangeListener,
+             PlayerBasicChangeListener,
+             PlaylistBasicChangeListener,
+             AudioManager.OnAudioFocusChangeListener {
+
   private static final String TAG = "PlayerService";
 
   public static final String ACTION_PLAY = "org.eatabrick.radio.PlayerService.ACTION_PLAY";
@@ -196,6 +202,23 @@ public class PlayerService extends Service implements TrackPositionChangeListene
     mListeners.remove(listener);
   }
 
+  public void onAudioFocusChange(int change) {
+    switch (change) {
+      case AudioManager.AUDIOFOCUS_GAIN:
+        setVolume(1.0f);
+        break;
+      case AudioManager.AUDIOFOCUS_LOSS:
+        stopMusic();
+        break;
+      case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+        setVolume(0.0f);
+        break;
+      case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+        setVolume(0.2f);
+        break;
+    }
+  }
+
   private void updateSongInformation() {
     MPDPlayer player = mServer.getMPDPlayer();
     MPDPlaylist playlist = mServer.getMPDPlaylist();
@@ -317,13 +340,18 @@ public class PlayerService extends Service implements TrackPositionChangeListene
     });
 
     try {
-      mPlayer.setDataSource(this, streamUri);
-      mPlayer.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
-      mPlayer.prepareAsync();
+      AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+      int result = manager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 
-      mPlaying = true;
-      sendStatusChange();
-      showNotification();
+      if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+        mPlayer.setDataSource(this, streamUri);
+        mPlayer.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
+        mPlayer.prepareAsync();
+
+        mPlaying = true;
+        sendStatusChange();
+        showNotification();
+      }
     } catch (IOException e) {
       Log.d(TAG, "I/O exception: " + e.getMessage());
     } catch (IllegalStateException e) {
@@ -337,9 +365,18 @@ public class PlayerService extends Service implements TrackPositionChangeListene
       mPlayer.release();
     }
 
+    AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+    manager.abandonAudioFocus(this);
+
     mPlaying = false;
     sendStatusChange();
     stopForeground(true);
     stopSelf();
+  }
+
+  private void setVolume(float volume) {
+    if (mPlayer != null) {
+      mPlayer.setVolume(volume, volume);
+    }
   }
 }
