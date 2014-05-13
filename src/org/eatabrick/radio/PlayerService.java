@@ -388,8 +388,12 @@ public class PlayerService extends Service
 
   private void stopMusic() {
     if (mPlayer != null) {
-      mPlayer.stop();
-      mPlayer.release();
+      try {
+        mPlayer.stop();
+        mPlayer.release();
+      } catch (IllegalStateException e) {
+        // ignore
+      }
     }
 
     if (mRemote != null) {
