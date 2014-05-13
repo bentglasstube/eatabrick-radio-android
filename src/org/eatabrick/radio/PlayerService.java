@@ -129,33 +129,37 @@ public class PlayerService extends Service
   }
 
   @Override public int onStartCommand(Intent intent, int flags, int startId) {
-    String action = intent.getAction();
+    if (intent == null) {
+      Log.d(TAG, "Got null intent");
+    } else {
+      String action = intent.getAction();
 
-    if (action == null) {
-      Log.d(TAG, "Got intent with null action");
-    } else if (action.equals(ACTION_PLAY)) {
-      startMusic();
-    } else if (action.equals(ACTION_SKIP)) {
+      if (action == null) {
+        Log.d(TAG, "Got intent with null action");
+      } else if (action.equals(ACTION_PLAY)) {
+        startMusic();
+      } else if (action.equals(ACTION_SKIP)) {
 
-      new Thread(new Runnable() {
-        public void run() {
-          try {
-            mServer.getMPDPlayer().playNext();
-          } catch (MPDConnectionException e) {
-            Log.d(TAG, "Connection problem: " + e.getMessage());
-          } catch (MPDPlayerException e) {
-            Log.d(TAG, "Player problem: " + e.getMessage());
+        new Thread(new Runnable() {
+          public void run() {
+            try {
+              mServer.getMPDPlayer().playNext();
+            } catch (MPDConnectionException e) {
+              Log.d(TAG, "Connection problem: " + e.getMessage());
+            } catch (MPDPlayerException e) {
+              Log.d(TAG, "Player problem: " + e.getMessage());
+            }
           }
-        }
-      }).start();
+        }).start();
 
-      if (!mPlaying) stopSelf();
-    } else if (action.equals(ACTION_STOP)) {
-      stopMusic();
-    } else if (action.equals(ACTION_PAUSE)) {
-      pauseMusic();
-    } else if (action.equals(ACTION_TOGGLE)) {
-      toggleMusic();
+        if (!mPlaying) stopSelf();
+      } else if (action.equals(ACTION_STOP)) {
+        stopMusic();
+      } else if (action.equals(ACTION_PAUSE)) {
+        pauseMusic();
+      } else if (action.equals(ACTION_TOGGLE)) {
+        toggleMusic();
+      }
     }
 
     return START_STICKY;
